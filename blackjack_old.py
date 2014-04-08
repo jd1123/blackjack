@@ -4,9 +4,6 @@ import os, sys
 class Game(object):
 	
 	def __init__(self, decks = 6):
-		config = {'shuffle_threshold': 0.35, 
-				'Ace' : 14, 'Face' : [11,12,13]}
-		
 		self.game_state = 'Welcome'
 		self.game_deck = MultiDeck(decks)
 		self.player_hand = Hand()
@@ -14,28 +11,28 @@ class Game(object):
 		self.bank_roll = BankRoll()
 		self.run_flag = True
 		self.play_hand_container = []
-		self.run_game()
+		self.runGame()
 	
 	#show the count of the deck		
-	def print_count(self):
+	def printCount(self):
 		print 'The count is ' + str(self.game_deck.deckCount()) + '....'
 	
 	#check to see if all hands are busts
-	def all_hands_busted(self):
+	def allHandsBusted(self):
 		b = 1
 		for h in self.play_hand_container:
 			b*=h.busted*1
 		return b
 	
 	#break to keep the game pace
-	def game_pause(self):
+	def gamePause(self):
 		print 'Press Enter to continue.'
 		player_input = raw_input()
 	
 	#Show the hands from the perspective of a player
 	#if the reveal flag is set to true, it will show the 
 	#dealer's down card
-	def show_state(self , msg='', reveal=False):
+	def showState(self , msg='', reveal=False):
 		os.system('clear')
 		print msg + '\n'
 		i=len(self.play_hand_container) - 1
@@ -63,18 +60,18 @@ class Game(object):
 		print
 	
 	#Main Welcome Screen
-	def welcome_screen(self):
+	def welcomeScreen(self):
 		os.system('clear')
 		print "======================="
 		print "Welcome to BlackJack!"
 		print "======================="
 		print 'By John Wasack'
 		print "=======================\n"
-		self.game_pause()
+		self.gamePause()
 	
 	#Game over screen	
-	def game_over_screen(self):
-		self.game_pause()
+	def gameOverScreen(self):
+		self.gamePause()
 		self.run_flag = False
 		os.system('clear')
 		print "=======================\n"
@@ -83,7 +80,7 @@ class Game(object):
 		print "=======================\n"
 	
 	#Take the input from a bet and do some logic	
-	def bet_input(self):
+	def betInput(self):
 		os.system('clear')
 		bet_ok = False
 		self.bank_roll.printBankRoll()
@@ -114,7 +111,7 @@ class Game(object):
 		return self.player_hand.wager
 	
 	#Deal the hand in the right order
-	def start_hand(self):	
+	def startHand(self):	
 		
 		if (self.game_deck.percentCardsLeft() < 0.35):
 			self.game_deck.shuffle()
@@ -135,7 +132,7 @@ class Game(object):
 		##############################'''
 		
 		self.play_hand_container.append(self.player_hand)
-		self.show_state()
+		self.showState()
 		
 		if self.dealer_hand.lastCard()[1]==14:
 			print 'Would you like insurance? (Y/n)'
@@ -156,13 +153,13 @@ class Game(object):
 					print 'You entered something incorrectly. Please type (Y) for yes or (N) for no.'
 		
 		if self.dealer_hand.revealValue()==21:
-			self.show_state('Dealer has 21', reveal=True)
+			self.showState('Dealer has 21', reveal=True)
 			print 'Dealer has 21, you lose :('
 			self.bank_roll.dec(self.player_hand.wager)
 			if insurance:
 				self.bank_roll.inc(2*self.player_hand.wager)
 				print 'But you had insurance!'
-			self.game_pause()
+			self.gamePause()
 			return False
 		else:
 			if self.player_hand.handValue()==21:
@@ -171,7 +168,7 @@ class Game(object):
 				self.bank_roll.inc(int(self.player_hand.wager*1.5))
 				if insurance:
 					self.bank_roll.dec(self.player_hand.wager)
-				self.game_pause()
+				self.gamePause()
 				return False
 			else:
 				if insurance:
@@ -180,7 +177,7 @@ class Game(object):
 	
 	#This is the dealer logic for after the player makes all decisions
 	#Stand on soft 17s
-	def dealer_logic(self):
+	def dealerLogic(self):
 		dealer_go = True
 		while(dealer_go):
 			if self.dealer_hand.revealValue() < 17:
@@ -199,17 +196,17 @@ class Game(object):
 				dealer_go=False
 				return self.dealer_hand.revealHand()
 			
-			self.game_pause()
+			self.gamePause()
 			
 	#Evaluate the hand(s) after the dealer has played
-	def evaluate_hand(self, plrhand, dealer_done = True, msg = None):
+	def evaluateHand(self, plrhand, dealer_done = True, msg = None):
 		if msg:
 			print msg
 		plr = plrhand.handValue()
 		dlr = self.dealer_hand.revealValue()
 			
 		if plr > 21:
-			#self.show_state('Bust', reveal = True)
+			#self.showState('Bust', reveal = True)
 			print 'Player Busts!\n'
 			plrhand.busted = True
 			if dealer_done:	
@@ -241,7 +238,7 @@ class Game(object):
 		return True
 	
 	#Get player input for each hand
-	def player_logic(self, player_go):
+	def playerLogic(self, player_go):
 		hand_index=0
 		for h in self.play_hand_container:
 			while h.hand_active:		
@@ -255,14 +252,14 @@ class Game(object):
 				if player_input == 'H':
 					os.system('clear')
 					h.hit(self.game_deck)
-					self.show_state(msg = 'You Hit!')
+					self.showState(msg = 'You Hit!')
 					print 'You drew: ' + self.player_hand.lastCardFormatted()
-					h.hand_active = self.evaluate_hand(h, dealer_done = False)
+					h.hand_active = self.evaluateHand(h, dealer_done = False)
 				
 				elif player_input == 'S':
 					h.hand_active = False
 					os.system('clear')
-					self.show_state('You Stand!', reveal = False)
+					self.showState('You Stand!', reveal = False)
 
 				elif player_input == 'D':
 					if h.wager*2 <= self.bank_roll.balance:	
@@ -270,9 +267,9 @@ class Game(object):
 						
 						h.wager*=2
 						h.hit(self.game_deck)
-						self.show_state('DOUBLE DOWN!', reveal = False)
+						self.showState('DOUBLE DOWN!', reveal = False)
 						print 'You drew: ' + self.player_hand.lastCardFormatted()
-						self.evaluate_hand(h, dealer_done = False)
+						self.evaluateHand(h, dealer_done = False)
 						h.hand_active = False
 					
 					else:
@@ -286,7 +283,7 @@ class Game(object):
 					return False
 				
 				elif player_input == '*':
-					self.print_count()
+					self.printCount()
 				
 				elif player_input == 'I':
 					can_split = self.player_hand.canSplit()
@@ -299,7 +296,7 @@ class Game(object):
 						new_hand.wager = h.wager
 						h.addCardToHand(self.game_deck.drawCard())
 						self.play_hand_container.append(new_hand)
-						self.show_state('You Split!', reveal = False)
+						self.showState('You Split!', reveal = False)
 
 					else:
 						print 'You cannot split'
@@ -317,7 +314,7 @@ class Game(object):
 	#2) get player decisions
 	#3) have the dealer play
 	#4) evaluate the hand and change the bankroll
-	def main_game_logic(self):
+	def mainGameLogic(self):
 		
 		self.player_hand.clrHand()
 		self.dealer_hand.clrHand()
@@ -325,46 +322,46 @@ class Game(object):
 		
 		bet = None
 		if self.bank_roll.hasEnough(1):
-			bet = self.bet_input()
+			bet = self.betInput()
 			if (bet == None):
 				player_go = False
 			else:
-				player_go = self.start_hand()
+				player_go = self.startHand()
 		else:
 			print 'You are all out of cash!'
 			player_go = False
 			self.game_state = 'GameOver'
 			
 		if (player_go):
-			player_done = self.player_logic(player_go)
+			player_done = self.playerLogic(player_go)
 			if (player_done):
-				if not(self.all_hands_busted()):
-					self.show_state(msg = "Dealer's Turn", reveal=True)
-					self.dealer_logic()
+				if not(self.allHandsBusted()):
+					self.showState(msg = "Dealer's Turn", reveal=True)
+					self.dealerLogic()
 				
-				self.game_pause()
+				self.gamePause()
 				os.system('clear')
 				
 				for h in self.play_hand_container:
 					msg=''
 					if len(self.play_hand_container) > 1:
 						msg = 'Hand ' + str(self.play_hand_container.index(h)) + ' result:'
-					self.evaluate_hand(h, dealer_done = True, msg=msg)
-					self.game_pause()
+					self.evaluateHand(h, dealer_done = True, msg=msg)
+					self.gamePause()
 		
 	#Small, rudimentary game "engine"
-	def run_game(self):
+	def runGame(self):
 		while (self.run_flag):
 			
 			if self.game_state == 'Welcome':
-				self.welcome_screen()
+				self.welcomeScreen()
 				self.game_state = "MainState"
 			
 			elif self.game_state == 'MainState':
-				self.main_game_logic()
+				self.mainGameLogic()
 			
 			elif self.game_state == 'GameOver':
-				self.game_over_screen()
+				self.gameOverScreen()
 
 def main():
 	game = Game()
