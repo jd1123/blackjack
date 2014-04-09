@@ -28,13 +28,13 @@ class MultiDeck(object):
         self.discard_pile = []      
         self.shuffle() 
                 
-    def cardsRemaining(self):
+    def cards_remaining(self):
         return len(self.deck)
     
-    def percentCardsLeft(self):
-        return float(self.cardsRemaining())/float((self.numdecks*52))
+    def percent_cards_remaining(self):
+        return float(self.cards_remaining())/float((self.numdecks*52))
     
-    def drawCard(self, count=1):
+    def draw_card(self, count=1):
         drawn_card = []
         for i in range(0,count):            
             rand_index = randrange(0,len(self.deck))
@@ -48,7 +48,7 @@ class MultiDeck(object):
         for i in range(0,self.numdecks):
             self.deck+=Deck().cards()
             
-    def deckCount(self):
+    def deck_count(self):
         hc = lambda x: x>9*1
         lc = lambda x: x<7*1
         highcards = sum([hc(c[1]) for c in self.discard_pile])
@@ -63,17 +63,17 @@ class Hand(object):
         self.busted = False
         self.wager = 5
     
-    def addCardToHand(self, card):
+    def add_card_to_hand(self, card):
         if card[0][1] == 14:
             self.soft += 1
         self.cards_in_hand += card
         
     def hit(self, deck):
-        card = deck.drawCard()
-        self.addCardToHand(card)
-        return self.formatCard(card[0])
+        card = deck.draw_card()
+        self.add_card_to_hand(card)
+        return self.format_card(card[0])
 
-    def handValue(self):        
+    def hand_value(self):        
         self.v = 0        
         if self.cards_in_hand:        
             for c in self.cards_in_hand:
@@ -95,7 +95,7 @@ class Hand(object):
         else:
             return 0
     
-    def formatCard(self, card):
+    def format_card(self, card):
         
         cardDict = {11:'J', 12:'Q', 13:'K', 14:'A'}
         if card[1]>10:
@@ -103,22 +103,22 @@ class Hand(object):
         else:
             return '('+str(card[1])+' of '+str(card[0])+')'
     
-    def showHand(self):
-        return ' '.join([self.formatCard(c) for c in self.cards_in_hand])+':'+str(self.handValue())
+    def show_hand(self):
+        return ' '.join([self.format_card(c) for c in self.cards_in_hand])+':'+str(self.hand_value())
     
-    def clrHand(self):
+    def clr_hand(self):
         self.cards_in_hand = []
         self.soft = 0
         self.hand_active = True
         self.busted = False
     
-    def lastCard(self):
+    def last_card(self):
         return  self.cards_in_hand[-1]
     
-    def lastCardFormatted(self):
-        return  self.formatCard(self.cards_in_hand[-1])
+    def last_card_formatted(self):
+        return  self.format_card(self.cards_in_hand[-1])
     
-    def popCard(self):
+    def pop_card(self):
         try: 
             index = len(self.cards_in_hand) - 1 
             card = self.cards_in_hand[index]
@@ -127,10 +127,10 @@ class Hand(object):
         except IndexError:
             return []
     
-    def cardCount(self):
+    def card_count(self):
         return len(self.cards_in_hand)
     
-    def cardValue(self, card):
+    def card_value(self, card):
         if 2 <= card[0][1] <= 9:
             return card[0][1]
         elif 10<=card[0][1]<=13:
@@ -138,9 +138,9 @@ class Hand(object):
         elif card[0][1] == 14:
             return 11
     
-    def canSplit(self):
-        if self.cardCount() == 2:
-            return self.cardValue([self.cards_in_hand[0]]) ==  self.cardValue([self.cards_in_hand[1]])
+    def can_split(self):
+        if self.card_count() == 2:
+            return self.card_value([self.cards_in_hand[0]]) ==  self.card_value([self.cards_in_hand[1]])
         else:
             return False
         
@@ -148,8 +148,8 @@ class DealerHand(Hand):
     def __init__(self):
         Hand.__init__(self)
         
-    def handValue(self):
-        v = int(self.lastCard()[1])
+    def hand_value(self):
+        v = int(self.last_card()[1])
         if (14>v>10):
             return 10
         elif (v==14):
@@ -157,18 +157,18 @@ class DealerHand(Hand):
         else:
             return v     
      
-    def showHand(self):
-        return '(*, *) '+' '.join([self.formatCard(c) for c in self.cards_in_hand[1:]])+':'+str(self.handValue())
+    def show_hand(self):
+        return '(*, *) '+' '.join([self.format_card(c) for c in self.cards_in_hand[1:]])+':'+str(self.hand_value())
     
-    def revealHand(self):
-        return ' '.join([self.formatCard(c) for c in self.cards_in_hand])+':'+str(Hand.handValue(self))
+    def reveal_hand(self):
+        return ' '.join([self.format_card(c) for c in self.cards_in_hand])+':'+str(Hand.hand_value(self))
     
-    def revealValue(self):
-        return Hand.handValue(self)
+    def reveal_value(self):
+        return Hand.hand_value(self)
 
 class BankRoll(object):
-    def __init__(self):
-        self.balance = 500
+    def __init__(self, balance = 500):
+        self.balance = balance
     
     def inc(self, amount):
         self.balance+=amount
@@ -176,10 +176,10 @@ class BankRoll(object):
     def dec(self, amount):
         self.balance-=amount
         
-    def printBankRoll(self):
+    def print_bank_roll(self):
         print 'You currently have: ' + str(self.balance)
         
-    def hasEnough(self, bet):
+    def has_enough(self, bet):
         if bet>self.balance:
             return False
         else:

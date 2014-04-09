@@ -2,23 +2,28 @@ from bjcore import MultiDeck, Hand, DealerHand, BankRoll
 import os, sys
 
 class Game(object):
+	config = {'shuffle_threshold': 0.35, 
+				'Ace' : 14, 
+				'Face' : [11,12,13],
+				'deck_count': 6,
+				'default_wager': 5,
+				'starting_bankroll' : 500,
+				'num_decks': 6
+				}
 	
-	def __init__(self, decks = 6):
-		config = {'shuffle_threshold': 0.35, 
-				'Ace' : 14, 'Face' : [11,12,13]}
-		
+	def __init__(self):
 		self.game_state = 'Welcome'
-		self.game_deck = MultiDeck(decks)
+		self.game_deck = MultiDeck(Game.config['num_decks'])
 		self.player_hand = Hand()
 		self.dealer_hand = DealerHand()
-		self.bank_roll = BankRoll()
+		self.bank_roll = BankRoll(Game.config['starting_bankroll'])
 		self.run_flag = True
 		self.play_hand_container = []
 		self.run_game()
 	
 	#show the count of the deck		
 	def print_count(self):
-		print 'The count is ' + str(self.game_deck.deckCount()) + '....'
+		print 'The count is ' + str(self.game_deck.deck_count()) + '....'
 	
 	#check to see if all hands are busts
 	def all_hands_busted(self):
@@ -42,7 +47,7 @@ class Game(object):
 		j = 0
 		
 		for h in self.play_hand_container:	
-			s = h.showHand()
+			s = h.show_hand()
 			if not(h.hand_active):
 				s = s + '  *'
 			if (i):
@@ -55,9 +60,9 @@ class Game(object):
 			
 		dh = ''
 		if reveal:
-			dh = self.dealer_hand.revealHand()
+			dh = self.dealer_hand.reveal_hand()
 		else:
-			dh = self.dealer_hand.showHand()
+			dh = self.dealer_hand.show_hand()
 		
 		print 'Dealer Hand: ' + dh
 		print
@@ -69,6 +74,9 @@ class Game(object):
 		print "Welcome to BlackJack!"
 		print "======================="
 		print 'By John Wasack'
+		print "=======================\n"
+		print 'Some info:\n'
+		print 'D = Diamonds, S = Spades, C = Clubs, H = Hearts\n'
 		print "=======================\n"
 		self.game_pause()
 	
@@ -86,7 +94,7 @@ class Game(object):
 	def bet_input(self):
 		os.system('clear')
 		bet_ok = False
-		self.bank_roll.printBankRoll()
+		self.bank_roll.print_bank_roll()
 		while not(bet_ok):	
 			print 'What is your bet? (Default is 5): '
 			bet_input = raw_input()
@@ -105,7 +113,7 @@ class Game(object):
 					print 'Quitting game...'
 					self.game_state = 'GameOver'
 					return None
-				self.player_hand.wager = 5
+				self.player_hand.wager = Game.config['default_wager']
 				bet_ok = True
 			
 		
@@ -116,28 +124,28 @@ class Game(object):
 	#Deal the hand in the right order
 	def start_hand(self):	
 		
-		if (self.game_deck.percentCardsLeft() < 0.35):
+		if (self.game_deck.percent_cards_remaining() < Game.config['shuffle_threshold']):
 			self.game_deck.shuffle()
 		
 		insurance = False
 		
 		self.play_hand_container = []
 		
-		self.player_hand.addCardToHand(self.game_deck.drawCard())
-		self.dealer_hand.addCardToHand(self.game_deck.drawCard())
-		self.player_hand.addCardToHand(self.game_deck.drawCard())
-		self.dealer_hand.addCardToHand(self.game_deck.drawCard())
+		self.player_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.dealer_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.player_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.dealer_hand.add_card_to_hand(self.game_deck.draw_card())
 		
 		''' THIS IS FOR DEBUG'' 
-		c = self.game_deck.drawCard()
-		self.player_hand.addCardToHand(c)
-		self.player_hand.addCardToHand(c)
+		c = self.game_deck.draw_card()
+		self.player_hand.add_card_to_hand(c)
+		self.player_hand.add_card_to_hand(c)
 		##############################'''
 		
 		self.play_hand_container.append(self.player_hand)
 		self.show_state()
 		
-		if self.dealer_hand.lastCard()[1]==14:
+		if self.dealer_hand.last_card()[1]==Game.config['Ace']:
 			print 'Would you like insurance? (Y/n)'
 			
 			flag = True
@@ -155,7 +163,7 @@ class Game(object):
 				else:
 					print 'You entered something incorrectly. Please type (Y) for yes or (N) for no.'
 		
-		if self.dealer_hand.revealValue()==21:
+		if self.dealer_hand.reveal_value()==21:
 			self.show_state('Dealer has 21', reveal=True)
 			print 'Dealer has 21, you lose :('
 			self.bank_roll.dec(self.player_hand.wager)
@@ -165,7 +173,7 @@ class Game(object):
 			self.game_pause()
 			return False
 		else:
-			if self.player_hand.handValue()==21:
+			if self.player_hand.hand_value()==21:
 				print 'BLACKJACK!'
 				print 'You win ' + str(int(self.player_hand.wager*1.5))
 				self.bank_roll.inc(int(self.player_hand.wager*1.5))
@@ -183,21 +191,20 @@ class Game(object):
 	def dealer_logic(self):
 		dealer_go = True
 		while(dealer_go):
-			if self.dealer_hand.revealValue() < 17:
+			if self.dealer_hand.reveal_value() < 17:
 				print 'Dealer Hits!'
 				print 'Dealer Draws: ' + self.dealer_hand.hit(self.game_deck)
-				print 'Dealer Hand: ' + self.dealer_hand.revealHand()
-				print
-			elif self.dealer_hand.revealValue() > 21:
+				print 'Dealer Hand: ' + self.dealer_hand.reveal_hand() + '\n'
+			elif self.dealer_hand.reveal_value() > 21:
 				print 'Dealer Busts!'
-				print 'Dealer hand: ' + str(self.dealer_hand.revealHand()) + '\n'
+				print 'Dealer hand: ' + str(self.dealer_hand.reveal_hand()) + '\n'
 				dealer_go=False
-				return self.dealer_hand.revealHand()
+				return self.dealer_hand.reveal_hand()
 			else:
 				print 'Dealer Stands!'
-				print 'Dealer hand: ' + str(self.dealer_hand.revealHand()) + '\n'
+				print 'Dealer hand: ' + str(self.dealer_hand.reveal_hand()) + '\n'
 				dealer_go=False
-				return self.dealer_hand.revealHand()
+				return self.dealer_hand.reveal_hand()
 			
 			self.game_pause()
 			
@@ -205,8 +212,8 @@ class Game(object):
 	def evaluate_hand(self, plrhand, dealer_done = True, msg = None):
 		if msg:
 			print msg
-		plr = plrhand.handValue()
-		dlr = self.dealer_hand.revealValue()
+		plr = plrhand.hand_value()
+		dlr = self.dealer_hand.reveal_value()
 			
 		if plr > 21:
 			#self.show_state('Bust', reveal = True)
@@ -256,7 +263,7 @@ class Game(object):
 					os.system('clear')
 					h.hit(self.game_deck)
 					self.show_state(msg = 'You Hit!')
-					print 'You drew: ' + self.player_hand.lastCardFormatted()
+					print 'You drew: ' + self.player_hand.last_card_formatted()
 					h.hand_active = self.evaluate_hand(h, dealer_done = False)
 				
 				elif player_input == 'S':
@@ -271,7 +278,7 @@ class Game(object):
 						h.wager*=2
 						h.hit(self.game_deck)
 						self.show_state('DOUBLE DOWN!', reveal = False)
-						print 'You drew: ' + self.player_hand.lastCardFormatted()
+						print 'You drew: ' + self.player_hand.last_card_formatted()
 						self.evaluate_hand(h, dealer_done = False)
 						h.hand_active = False
 					
@@ -289,15 +296,15 @@ class Game(object):
 					self.print_count()
 				
 				elif player_input == 'I':
-					can_split = self.player_hand.canSplit()
+					can_split = self.player_hand.can_split()
 					
-					if (can_split and self.bank_roll.hasEnough(h.wager*(len(self.play_hand_container)+1))):
+					if (can_split and self.bank_roll.has_enough(h.wager*(len(self.play_hand_container)+1))):
 						print 'You can split'
 						new_hand = Hand()
-						new_hand.addCardToHand(h.popCard())
-						new_hand.addCardToHand(self.game_deck.drawCard())
+						new_hand.add_card_to_hand(h.pop_card())
+						new_hand.add_card_to_hand(self.game_deck.draw_card())
 						new_hand.wager = h.wager
-						h.addCardToHand(self.game_deck.drawCard())
+						h.add_card_to_hand(self.game_deck.draw_card())
 						self.play_hand_container.append(new_hand)
 						self.show_state('You Split!', reveal = False)
 
@@ -319,12 +326,12 @@ class Game(object):
 	#4) evaluate the hand and change the bankroll
 	def main_game_logic(self):
 		
-		self.player_hand.clrHand()
-		self.dealer_hand.clrHand()
+		self.player_hand.clr_hand()
+		self.dealer_hand.clr_hand()
 		player_go = True
 		
 		bet = None
-		if self.bank_roll.hasEnough(1):
+		if self.bank_roll.has_enough(1):
 			bet = self.bet_input()
 			if (bet == None):
 				player_go = False
