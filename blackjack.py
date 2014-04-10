@@ -76,6 +76,8 @@ class Game(object):
 		print 'By John Wasack'
 		print "=======================\n"
 		print 'Some info:\n'
+		print 'Cards are shown as (K of D)'
+		print 'The first letter or number is the card, the second is the suit\n'
 		print 'D = Diamonds, S = Spades, C = Clubs, H = Hearts\n'
 		print "=======================\n"
 		self.game_pause()
@@ -104,6 +106,11 @@ class Game(object):
 				
 				if bet_int > self.bank_roll.balance:
 					print 'You do not have that much cash!\nPlease try again.'
+				elif bet_int == 0:
+					print 'You must bet something'
+				elif bet_int < 0:
+					print "Why, aren't you clever. Please try again"
+					
 				else:
 					self.player_hand.wager = bet_int
 					bet_ok = True
@@ -113,8 +120,13 @@ class Game(object):
 					print 'Quitting game...'
 					self.game_state = 'GameOver'
 					return None
-				self.player_hand.wager = Game.config['default_wager']
-				bet_ok = True
+				
+				elif bet_input == '*':
+					self.print_count()
+				
+				else:
+					self.player_hand.wager = Game.config['default_wager']
+					bet_ok = True
 			
 		
 		os.system('clear')
@@ -125,7 +137,10 @@ class Game(object):
 	def start_hand(self):	
 		
 		if (self.game_deck.percent_cards_remaining() < Game.config['shuffle_threshold']):
+			print 'Reshuffling deck...\n'
+			self.game_pause()
 			self.game_deck.shuffle()
+			
 		
 		insurance = False
 		
@@ -190,6 +205,7 @@ class Game(object):
 	#Stand on soft 17s
 	def dealer_logic(self):
 		dealer_go = True
+		self.game_pause()
 		while(dealer_go):
 			if self.dealer_hand.reveal_value() < 17:
 				print 'Dealer Hits!'
