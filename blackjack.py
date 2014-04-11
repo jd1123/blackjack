@@ -5,7 +5,6 @@ class Game(object):
 	config = {'shuffle_threshold': 0.35, 
 				'Ace' : 14, 
 				'Face' : [11,12,13],
-				'deck_count': 6,
 				'default_wager': 5,
 				'starting_bankroll' : 500,
 				'num_decks': 6,
