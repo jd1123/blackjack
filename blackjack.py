@@ -5,11 +5,12 @@ class Game(object):
 	config = {'shuffle_threshold': 0.35, 
 				'Ace' : 14, 
 				'Face' : [11,12,13],
-				'default_wager': 5,
+				'default_wager': 25,
 				'starting_bankroll' : 500,
 				'num_decks': 6,
 				'blackjack_payout': 1.5,
-				'insurance_payout': 2
+				'insurance_payout': 2,
+				'save_bankroll': True
 				}
 	
 	def __init__(self):
@@ -17,14 +18,36 @@ class Game(object):
 		self.game_deck = MultiDeck(Game.config['num_decks'])
 		self.player_hand = Hand()
 		self.dealer_hand = DealerHand()
-		self.bank_roll = BankRoll(Game.config['starting_bankroll'])
 		self.run_flag = True
 		self.play_hand_container = []
+		
+		if Game.config['save_bankroll']:
+			try:
+				file = open('bankroll.txt' , 'r')
+				old_balance = int(file.read())
+				file.close()
+				
+				if old_balance <= 0:
+					old_balance = 500
+				
+				self.bank_roll = BankRoll(old_balance)
+			
+			except IOError:
+				self.bank_roll = BankRoll(Game.config['starting_bankroll'])
+			
+		
 		self.run_game()
 	
 	#show the count of the deck		
 	def print_count(self):
 		print 'The count is ' + str(self.game_deck.deck_count()) + '....\n'
+	
+	def clear_screen(self):
+		if os.name == 'posix':
+			os.system('clear')
+		
+		elif os.name == 'nt':
+			os.system('cls')
 	
 	#check to see if all hands are busts
 	def all_hands_busted(self):
@@ -43,7 +66,7 @@ class Game(object):
 	#if the reveal flag is set to true, it will show the 
 	#dealer's down card
 	def show_state(self , msg='', reveal=False):
-		os.system('clear')
+		self.clear_screen()
 		print msg + '\n'
 		i=len(self.play_hand_container) - 1
 		j = 0
@@ -73,7 +96,7 @@ class Game(object):
 	
 	#Main Welcome Screen
 	def welcome_screen(self):
-		os.system('clear')
+		self.clear_screen()
 		print "======================="
 		print "Welcome to BlackJack!"
 		print "======================="
@@ -95,21 +118,25 @@ class Game(object):
 	def game_over_screen(self):
 		self.game_pause()
 		self.run_flag = False
-		os.system('clear')
+		self.clear_screen()
 		print "=======================\n"
 		print "Game Over"
 		print "Thank you for playing!\n"
 		print "=======================\n"
+		if Game.config['save_bankroll']:
+			file = open('bankroll.txt', 'w')
+			file.write(str(self.bank_roll.balance))
+			file.close()
+			
 	
 	#Take the input from a bet and do some logic	
 	def bet_input(self):
-		os.system('clear')
+		self.clear_screen()
 		bet_ok = False
 		self.bank_roll.print_bank_roll()
 		
 		while not(bet_ok):	
-			print 'What is your bet? (Default is 5): '
-			bet_input = raw_input()
+			bet_input = raw_input('What is your bet? (Default is ' + str(Game.config['default_wager']) + '): ')
 			
 			try:
 				bet_int = int(bet_input)
@@ -140,7 +167,7 @@ class Game(object):
 					bet_ok = True
 			
 		
-		os.system('clear')
+		self.clear_screen()
 		print 'You have bet ' + str(self.player_hand.wager),
 		return self.player_hand.wager
 	
@@ -148,7 +175,7 @@ class Game(object):
 	def start_hand(self):	
 		
 		if (self.game_deck.percent_cards_remaining() < Game.config['shuffle_threshold']):
-			print 'Reshuffling deck...\n'
+			print '\nReshuffling deck...\n'
 			self.game_pause()
 			self.game_deck.shuffle()
 			
@@ -194,7 +221,7 @@ class Game(object):
 						print 'You have taken insurance for ' + str(insurance_amount)
 						flag = False
 						self.game_pause()
-						os.system('clear')
+						self.clear_screen()
 					
 					else:
 						print 'You do not have enough for insurance\n'
@@ -204,7 +231,7 @@ class Game(object):
 				elif player_input == 'N':
 					print 'You have declined insurance\n'
 					self.game_pause()
-					os.system('clear')
+					self.clear_screen()
 					flag = False
 					self.show_state(msg = 'You have bet ' + str(self.player_hand.wager))
 				
@@ -241,8 +268,8 @@ class Game(object):
 			
 			if self.player_hand.hand_value()==21:
 				print 'BLACKJACK!'
-				print 'You win ' + str(self.player_hand.wager*Game.config['blackjack_payout'])
-				self.bank_roll.inc(self.player_hand.wager*Game.config['blackjack_payout'])
+				print 'You win ' + str(int(self.player_hand.wager*Game.config['blackjack_payout']))
+				self.bank_roll.inc(int(self.player_hand.wager*Game.config['blackjack_payout']))
 				if insurance:
 					self.bank_roll.dec(insurance_amount)
 					print 'Your bankroll has been reduced by ' + str(insurance_amount) + ' for insurance'
@@ -257,7 +284,7 @@ class Game(object):
 					print 'Your bankroll has been reduced by the insurance wager of ' + str(insurance_amount)
 					print 'You now have: ' + str(self.bank_roll.balance)
 					self.game_pause()
-					os.system('clear')
+					self.clear_screen()
 					self.show_state(msg = 'You have bet ' + str(self.player_hand.wager) )
 				
 				return True
@@ -276,14 +303,18 @@ class Game(object):
 				print 'Dealer Hand: ' + self.dealer_hand.reveal_hand() + '\n'
 			
 			elif self.dealer_hand.reveal_value() > 21:
-				print 'Dealer Busts!'
-				print 'Dealer hand: ' + str(self.dealer_hand.reveal_hand()) + '\n'
+				self.clear_screen()
+				self.show_state(msg='Dealer Busts!', reveal=True)
+				
+				#print 'Dealer Busts!'
+				#print 'Dealer hand: ' + str(self.dealer_hand.reveal_hand()) + '\n'
+				
 				dealer_go=False
 				return self.dealer_hand.reveal_hand()
 			
 			else:
-				print 'Dealer Stands!'
-				#print 'Dealer hand: ' + str(self.dealer_hand.reveal_hand()) + '\n'
+				self.clear_screen()
+				self.show_state('Dealer Stands!', reveal=True) 
 				dealer_go=False
 				return self.dealer_hand.reveal_hand()
 			
@@ -344,11 +375,10 @@ class Game(object):
 					print 'Active Hand: ' + str(hand_index)
 				
 				print 'What would you like to do?'
-				print '(H) hit, (S) stand, (D) double down, (I) split, or (Q) quit'
-				player_input = raw_input().upper()
+				player_input = raw_input('(H) hit, (S) stand, (D) double down, (I) split, or (Q) quit : ').upper()
 				
 				if player_input == 'H':
-					os.system('clear')
+					self.clear_screen()
 					h.hit(self.game_deck)
 					self.show_state(msg = 'You Hit!')
 					print 'You drew: ' + self.player_hand.last_card_formatted()
@@ -356,24 +386,28 @@ class Game(object):
 				
 				elif player_input == 'S':
 					h.hand_active = False
-					os.system('clear')
+					self.clear_screen()
 					self.show_state('You Stand!', reveal = False)
 
 				elif player_input == 'D':
-					if h.wager*2 <= self.bank_roll.balance:	
-						os.system('clear')
-						
-						h.wager*=2
-						h.hit(self.game_deck)
-						self.show_state('DOUBLE DOWN!', reveal = False)
-						print 'You drew: ' + self.player_hand.last_card_formatted()
-						self.evaluate_hand(h, dealer_done = False)
-						h.hand_active = False
-					
+					if h.card_count() > 2:
+						print '\nYou cannot double down. \n'
 					else:
-						print 'You do not have that much cash, and so you cannot double down'
-						print 'Please try again.\n'
-				
+						if h.wager*2 <= self.bank_roll.balance:	
+							self.clear_screen()
+							
+							h.wager*=2
+							h.hit(self.game_deck)
+							self.show_state('DOUBLE DOWN!', reveal = False)
+							print 'You drew: ' + self.player_hand.last_card_formatted() + '\n'
+							self.evaluate_hand(h, dealer_done = False)
+							h.hand_active = False
+							self.game_pause()
+						
+						else:
+							print 'You do not have that much cash, and so you cannot double down'
+							print 'Please try again.\n'
+					
 				elif player_input == 'Q':
 					print 'Quitting game...'
 					self.game_state = 'GameOver'
@@ -438,7 +472,7 @@ class Game(object):
 					self.dealer_logic()
 				
 				self.game_pause()
-				os.system('clear')
+				self.clear_screen()
 				
 				for h in self.play_hand_container:
 					msg=''
