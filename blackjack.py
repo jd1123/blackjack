@@ -158,10 +158,10 @@ class Game(object):
 		
 		self.play_hand_container = []
 		
-		#self.player_hand.add_card_to_hand(self.game_deck.draw_card())
-		#self.dealer_hand.add_card_to_hand(self.game_deck.draw_card())
-		#self.player_hand.add_card_to_hand(self.game_deck.draw_card())
-		#self.dealer_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.player_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.dealer_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.player_hand.add_card_to_hand(self.game_deck.draw_card())
+		self.dealer_hand.add_card_to_hand(self.game_deck.draw_card())
 		
 		''' THIS IS FOR DEBUG TO CHECK SPLITS'' 
 		c = self.game_deck.draw_card()
@@ -169,7 +169,7 @@ class Game(object):
 		self.player_hand.add_card_to_hand(c)
 		##############################'''
 		
-		'''THIS IS FOR DEBUG TO TEST INSURANCE'''
+		'''THIS IS FOR DEBUG TO TEST INSURANCE''
 		self.player_hand.add_card_to_hand([('S',9)])
 		self.player_hand.add_card_to_hand([('S',13)])
 		self.dealer_hand.add_card_to_hand([('D',6)])
