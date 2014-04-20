@@ -23,9 +23,8 @@ class Game(object):
 		
 		if Game.config['save_bankroll']:
 			try:
-				file = open('bankroll.txt' , 'r')
-				old_balance = int(file.read())
-				file.close()
+				with open('bankroll.txt' , 'r') as file:
+					old_balance = int(file.read())
 				
 				if old_balance <= 0:
 					old_balance = 500
@@ -124,9 +123,11 @@ class Game(object):
 		print "Thank you for playing!\n"
 		print "=======================\n"
 		if Game.config['save_bankroll']:
-			file = open('bankroll.txt', 'w')
-			file.write(str(self.bank_roll.balance))
-			file.close()
+			try:
+				with open('bankroll.txt', 'w') as file:
+					file.write(str(self.bank_roll.balance))
+			except:
+				pass
 			
 	
 	#Take the input from a bet and do some logic	
