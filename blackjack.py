@@ -31,7 +31,7 @@ class Game(object):
 				
 				self.bank_roll = BankRoll(old_balance)
 			
-			except IOError:
+			except (IOError, ValueError):
 				self.bank_roll = BankRoll(Game.config['starting_bankroll'])
 			
 		
@@ -126,7 +126,7 @@ class Game(object):
 			try:
 				with open('bankroll.txt', 'w') as file:
 					file.write(str(self.bank_roll.balance))
-			except:
+			except (IOError):
 				pass
 			
 	
@@ -307,9 +307,6 @@ class Game(object):
 				self.clear_screen()
 				self.show_state(msg='Dealer Busts!', reveal=True)
 				
-				#print 'Dealer Busts!'
-				#print 'Dealer hand: ' + str(self.dealer_hand.reveal_hand()) + '\n'
-				
 				dealer_go=False
 				return self.dealer_hand.reveal_hand()
 			
@@ -336,6 +333,7 @@ class Game(object):
 				print '**** Player loses ' + str(plrhand.wager) + '.\n'
 				self.bank_roll.dec(plrhand.wager)
 				return False
+			
 			return False
 			
 		if dealer_done:	
