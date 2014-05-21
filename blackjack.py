@@ -99,7 +99,7 @@ class Game(object):
 		print "======================="
 		print "Welcome to BlackJack!"
 		print "======================="
-		print 'By John Wasack'
+		print 
 		print "=======================\n"
 		print 'Some info:\n'
 		print 'Cards are shown as (K of D)'
