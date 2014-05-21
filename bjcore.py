@@ -124,9 +124,9 @@ class Hand(object):
             index = len(self.cards_in_hand) - 1 
             card = self.cards_in_hand[index]
             self.cards_in_hand.remove(card)
-            return [card]
+            return card
         except IndexError:
-            return []
+            return None
     
     def card_count(self):
         return len(self.cards_in_hand)
