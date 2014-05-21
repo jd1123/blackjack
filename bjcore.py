@@ -34,19 +34,20 @@ class MultiDeck(object):
     def percent_cards_remaining(self):
         return float(self.cards_remaining())/float((self.numdecks*52))
     
-    def draw_card(self, count=1):
+    def draw_card(self):
         drawn_card = []
-        for i in range(0,count):            
-            rand_index = randrange(0,len(self.deck))
-            drawn_card.append(self.deck[rand_index])
-            self.discard_pile.append(self.deck[rand_index])
-            del self.deck[rand_index]
+        rand_index = randrange(0,len(self.deck))
+        drawn_card = self.deck[rand_index]
+        self.discard_pile.append(self.deck[rand_index])
+        del self.deck[rand_index]
+                
         return drawn_card
 
     def shuffle(self):
         self.deck = []
         for i in range(0,self.numdecks):
             self.deck+=Deck().cards()
+        self.discard_pile = []
             
     def deck_count(self):
         hc = lambda x: x>9*1
@@ -64,14 +65,14 @@ class Hand(object):
         self.wager = 5
     
     def add_card_to_hand(self, card):
-        if card[0][1] == 14:
+        if card[1] == 14:
             self.soft += 1
-        self.cards_in_hand += card
+        self.cards_in_hand.append(card)
         
     def hit(self, deck):
         card = deck.draw_card()
         self.add_card_to_hand(card)
-        return self.format_card(card[0])
+        return self.format_card(card)
 
     def hand_value(self):        
         self.v = 0        
@@ -131,11 +132,11 @@ class Hand(object):
         return len(self.cards_in_hand)
     
     def card_value(self, card):
-        if 2 <= card[0][1] <= 9:
-            return card[0][1]
-        elif 10<=card[0][1]<=13:
+        if 2 <= card[1] <= 9:
+            return card[1]
+        elif 10<=card[1]<=13:
             return 10
-        elif card[0][1] == 14:
+        elif card[1] == 14:
             return 11
     
     def can_split(self):
