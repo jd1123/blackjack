@@ -15,7 +15,13 @@ class MultiDeckTest(unittest.TestCase):
         self.assertEqual(deck.numdecks, num_decks, 'The MultiDeck.numdecks attribute is not equal to the argument')
     
     def test_draw(self):
-        pass
+        num_old_cards = len(self.multi_deck.deck)
+        card = self.multi_deck.draw_card()
+        num_new_cards = len(self.multi_deck.deck)
+        n = [1 for c in self.multi_deck.deck if c==card]
+        self.assertEqual(num_old_cards-1, num_new_cards, 'The deck does not have the correct number of cards after draw')
+        self.assertEqual(len(n), 3, 'The card is still in the deck after a draw')
+        self.assertTrue(card in self.multi_deck.discard_pile, 'The card is not in the discard pile after draw')
     
     def test_reshuffle(self):
         multi_deck = MultiDeck(4)
